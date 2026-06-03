@@ -14,23 +14,37 @@ export default class PinballScene extends Phaser.Scene {
     this.physics.add.existing(rightWall, true);
     this.physics.add.existing(bottomGutter, true);
 
-    const ball = this.add.circle(420, 560, 14, 0xf8f9fa);
-    this.physics.add.existing(ball);
+    this.ball = this.add.circle(420, 560, 14, 0xf8f9fa);
+    this.physics.add.existing(this.ball);
 
-    ball.body.setCircle(14);
-    ball.body.setBounce(0.85);
-    ball.body.setCollideWorldBounds(true);
+    this.ball.body.setCircle(14);
+    this.ball.body.setBounce(0.85);
+    this.ball.body.setCollideWorldBounds(true);
 
-    this.physics.add.collider(ball, [leftWall, rightWall, bottomGutter]);
+    this.leftFlipper = this.add.rectangle(160, 520, 96, 16, 0xeaac8b);
+    this.rightFlipper = this.add.rectangle(320, 520, 96, 16, 0xeaac8b);
+
+    this.leftFlipper.setOrigin(0, 0.5);
+    this.rightFlipper.setOrigin(1, 0.5);
+
+    this.physics.add.existing(this.leftFlipper);
+    this.physics.add.existing(this.rightFlipper);
+
+    this.leftFlipper.body.setAllowGravity(false);
+    this.leftFlipper.body.setImmovable(true);
+    this.rightFlipper.body.setAllowGravity(false);
+    this.rightFlipper.body.setImmovable(true);
+
+    this.physics.add.collider(this.ball, [leftWall, rightWall, bottomGutter, this.leftFlipper, this.rightFlipper]);
 
     const maxChargeTime = 1500;
     const minLaunchVelocity = 450;
     const maxLaunchVelocity = 1100;
     let chargeStartTime = null;
-    let hasLaunched = false;
+    this.hasLaunched = false;
 
     this.input.keyboard.on('keydown-SPACE', () => {
-      if (hasLaunched || chargeStartTime !== null) {
+      if (this.hasLaunched || chargeStartTime !== null) {
         return;
       }
 
@@ -38,7 +52,7 @@ export default class PinballScene extends Phaser.Scene {
     });
 
     this.input.keyboard.on('keyup-SPACE', () => {
-      if (hasLaunched || chargeStartTime === null) {
+      if (this.hasLaunched || chargeStartTime === null) {
         return;
       }
 
@@ -46,9 +60,47 @@ export default class PinballScene extends Phaser.Scene {
       const chargePercent = chargeTime / maxChargeTime;
       const launchVelocity = minLaunchVelocity + (maxLaunchVelocity - minLaunchVelocity) * chargePercent;
 
-      ball.body.setVelocityY(-launchVelocity);
-      hasLaunched = true;
+      this.ball.body.setVelocityY(-launchVelocity);
+      this.hasLaunched = true;
       chargeStartTime = null;
     });
+
+    this.input.keyboard.on('keydown-A', () => {
+      this.leftFlipper.body.setAngularVelocity(-900);
+    });
+
+    this.input.keyboard.on('keyup-A', () => {
+      this.leftFlipper.body.setAngularVelocity(900);
+    });
+
+    this.input.keyboard.on('keydown-D', () => {
+      this.rightFlipper.body.setAngularVelocity(900);
+    });
+
+    this.input.keyboard.on('keyup-D', () => {
+      this.rightFlipper.body.setAngularVelocity(-900);
+    });
+  }
+
+  update() {
+    if (this.leftFlipper.rotation < -0.75) {
+      this.leftFlipper.rotation = -0.75;
+      this.leftFlipper.body.setAngularVelocity(0);
+    }
+
+    if (this.leftFlipper.rotation > 0) {
+      this.leftFlipper.rotation = 0;
+      this.leftFlipper.body.setAngularVelocity(0);
+    }
+
+    if (this.rightFlipper.rotation > 0.75) {
+      this.rightFlipper.rotation = 0.75;
+      this.rightFlipper.body.setAngularVelocity(0);
+    }
+
+    if (this.rightFlipper.rotation < 0) {
+      this.rightFlipper.rotation = 0;
+      this.rightFlipper.body.setAngularVelocity(0);
+    }
   }
 }
