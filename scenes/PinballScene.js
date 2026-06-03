@@ -21,6 +21,35 @@ export default class PinballScene extends Phaser.Scene {
     this.ball.body.setBounce(0.85);
     this.ball.body.setCollideWorldBounds(true);
 
+    this.ballsRemaining = 3;
+    this.hitBumpers = new Set();
+
+    this.livesText = this.add.text(32, 24, 'Balls: 3', {
+      fontFamily: 'Arial',
+      fontSize: '20px',
+      color: '#ffffff',
+    });
+
+    this.bumperText = this.add.text(32, 52, 'Bumpers: 0/5', {
+      fontFamily: 'Arial',
+      fontSize: '20px',
+      color: '#ffffff',
+    });
+
+    this.bumpers = [
+      this.createBumper('B1', 150, 130),
+      this.createBumper('B2', 300, 120),
+      this.createBumper('B3', 235, 215),
+      this.createBumper('B4', 120, 300),
+      this.createBumper('B5', 340, 300),
+    ];
+
+    this.bumpers.forEach((bumper) => {
+      this.physics.add.overlap(this.ball, bumper, () => {
+        this.hitBumper(bumper);
+      });
+    });
+
     this.leftFlipper = this.add.rectangle(160, 520, 96, 16, 0xeaac8b);
     this.rightFlipper = this.add.rectangle(320, 520, 96, 16, 0xeaac8b);
 
@@ -35,7 +64,7 @@ export default class PinballScene extends Phaser.Scene {
     this.rightFlipper.body.setAllowGravity(false);
     this.rightFlipper.body.setImmovable(true);
 
-    this.physics.add.collider(this.ball, [leftWall, rightWall, bottomGutter, this.leftFlipper, this.rightFlipper]);
+    this.physics.add.collider(this.ball, [leftWall, rightWall, this.leftFlipper, this.rightFlipper]);
 
     const maxChargeTime = 1500;
     const minLaunchVelocity = 450;
@@ -99,6 +128,10 @@ export default class PinballScene extends Phaser.Scene {
   }
 
   update() {
+    if (this.ball.y > 620) {
+      this.loseBall();
+    }
+
     if (this.leftFlipper.rotation < -0.75) {
       this.leftFlipper.rotation = -0.75;
       this.leftFlipper.body.setAngularVelocity(0);
@@ -118,5 +151,51 @@ export default class PinballScene extends Phaser.Scene {
       this.rightFlipper.rotation = 0;
       this.rightFlipper.body.setAngularVelocity(0);
     }
+  }
+
+  createBumper(id, x, y) {
+    const bumper = this.add.circle(x, y, 24, 0xf6bd60);
+    bumper.id = id;
+
+    this.physics.add.existing(bumper, true);
+    bumper.body.setCircle(24);
+
+    return bumper;
+  }
+
+  hitBumper(bumper) {
+    const angle = Phaser.Math.Angle.Between(bumper.x, bumper.y, this.ball.x, this.ball.y);
+    const impulseStrength = 520;
+
+    this.ball.body.setVelocity(
+      Math.cos(angle) * impulseStrength,
+      Math.sin(angle) * impulseStrength,
+    );
+
+    if (this.hitBumpers.has(bumper.id)) {
+      return;
+    }
+
+    this.hitBumpers.add(bumper.id);
+    bumper.setFillStyle(0x84a59d);
+    this.bumperText.setText(`Bumpers: ${this.hitBumpers.size}/5`);
+
+    if (this.hitBumpers.size === this.bumpers.length) {
+      this.scene.start('SummaryScene', { result: 'win' });
+    }
+  }
+
+  loseBall() {
+    this.ballsRemaining -= 1;
+    this.livesText.setText(`Balls: ${this.ballsRemaining}`);
+
+    if (this.ballsRemaining <= 0) {
+      this.scene.start('SummaryScene', { result: 'lose' });
+      return;
+    }
+
+    this.ball.body.reset(420, 560);
+    this.ball.body.setVelocity(0, 0);
+    this.hasLaunched = false;
   }
 }
