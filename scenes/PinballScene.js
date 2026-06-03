@@ -196,7 +196,7 @@ export default class PinballScene extends Phaser.Scene {
       this.scene.start('SummaryScene', {
         result: 'win',
         score: this.hitBumpers.size,
-        nextScene: 'TitleScene',
+        nextScene: this.level < 3 ? 'PinballScene' : 'GameOverScene',
         nextLevelData: { level: this.level + 1 },
       });
     }
