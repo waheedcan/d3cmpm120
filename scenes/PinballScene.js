@@ -73,8 +73,20 @@ export default class PinballScene extends Phaser.Scene {
       });
     });
 
-    this.leftFlipper = this.add.rectangle(160, this.levelConfig.flipperY, 96, 16, 0xeaac8b);
-    this.rightFlipper = this.add.rectangle(320, this.levelConfig.flipperY, 96, 16, 0xeaac8b);
+    this.leftFlipper = this.add.rectangle(
+      this.levelConfig.leftFlipperX,
+      this.levelConfig.flipperY,
+      96,
+      16,
+      0xeaac8b,
+    );
+    this.rightFlipper = this.add.rectangle(
+      this.levelConfig.rightFlipperX,
+      this.levelConfig.flipperY,
+      96,
+      16,
+      0xeaac8b,
+    );
 
     this.leftFlipper.setOrigin(0, 0.5);
     this.rightFlipper.setOrigin(1, 0.5);
@@ -115,6 +127,7 @@ export default class PinballScene extends Phaser.Scene {
       const launchVelocity = minLaunchVelocity + (maxLaunchVelocity - minLaunchVelocity) * chargePercent;
 
       this.ball.body.setAllowGravity(true);
+      this.ball.body.setVelocityX(this.levelConfig.launchVelocityX);
       this.ball.body.setVelocityY(-launchVelocity);
       this.hasLaunched = true;
       chargeStartTime = null;
@@ -307,7 +320,10 @@ export default class PinballScene extends Phaser.Scene {
           { x: 120, y: 300 },
           { x: 340, y: 300 },
         ],
+        leftFlipperX: 145,
+        rightFlipperX: 385,
         flipperY: 520,
+        launchVelocityX: -180,
         ballLostY: 620,
         ballLostDirection: 'down',
         leftFlipperActiveVelocity: -900,
@@ -328,7 +344,10 @@ export default class PinballScene extends Phaser.Scene {
         targetCount: 4,
         movingTargets: true,
         bumperPositions: [],
+        leftFlipperX: 145,
+        rightFlipperX: 385,
         flipperY: 520,
+        launchVelocityX: -180,
         ballLostY: 620,
         ballLostDirection: 'down',
         leftFlipperActiveVelocity: -900,
@@ -355,7 +374,10 @@ export default class PinballScene extends Phaser.Scene {
           { x: 115, y: 570 },
           { x: 350, y: 565 },
         ],
+        leftFlipperX: 145,
+        rightFlipperX: 385,
         flipperY: 120,
+        launchVelocityX: -180,
         ballLostY: 20,
         ballLostDirection: 'up',
         leftFlipperActiveVelocity: 900,
