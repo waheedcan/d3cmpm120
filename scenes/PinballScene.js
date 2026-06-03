@@ -26,6 +26,7 @@ export default class PinballScene extends Phaser.Scene {
     this.ball.body.setCircle(14);
     this.ball.body.setBounce(0.85);
     this.ball.body.setCollideWorldBounds(true);
+    this.ball.body.setAllowGravity(false);
 
     this.ballsRemaining = 3;
     this.hitBumpers = new Set();
@@ -113,6 +114,7 @@ export default class PinballScene extends Phaser.Scene {
       const chargePercent = chargeTime / maxChargeTime;
       const launchVelocity = minLaunchVelocity + (maxLaunchVelocity - minLaunchVelocity) * chargePercent;
 
+      this.ball.body.setAllowGravity(true);
       this.ball.body.setVelocityY(-launchVelocity);
       this.hasLaunched = true;
       chargeStartTime = null;
@@ -264,6 +266,7 @@ export default class PinballScene extends Phaser.Scene {
 
     this.ball.body.reset(420, 560);
     this.ball.body.setVelocity(0, 0);
+    this.ball.body.setAllowGravity(false);
     this.hasLaunched = false;
     this.isResetting = false;
   }
