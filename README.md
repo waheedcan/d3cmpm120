@@ -4,7 +4,7 @@ A three-level pinball game where each stage warps gravity. The ball is always in
 
 ## Play the Game
 
-[Play on Itch.io]() <!-- Add your Itch.io link here after deploying -->
+https://waheedcan.itch.io/gravity-gardens
 
 ## How Gameplay Requirements Are Satisfied
 
