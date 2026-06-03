@@ -7,6 +7,7 @@ export default class SummaryScene extends Phaser.Scene {
     const message = data.result === 'win' ? 'You cleared the garden.' : 'Out of balls.';
     const score = data.score ?? 0;
     const nextScene = data.nextScene ?? 'TitleScene';
+    const nextLevelData = data.nextLevelData ?? {};
 
     this.add.text(240, 280, message, {
       fontFamily: 'Arial',
@@ -33,8 +34,8 @@ export default class SummaryScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     continueButton.setInteractive({ useHandCursor: true });
-    continueButton.on('pointerdown', () => this.scene.start(nextScene));
+    continueButton.on('pointerdown', () => this.scene.start(nextScene, nextLevelData));
 
-    this.input.keyboard.once('keydown-SPACE', () => this.scene.start(nextScene));
+    this.input.keyboard.once('keydown-SPACE', () => this.scene.start(nextScene, nextLevelData));
   }
 }

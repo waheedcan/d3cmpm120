@@ -24,7 +24,7 @@ export default class TitleScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     this.input.keyboard.once('keydown-SPACE', () => {
-      this.scene.start('PinballScene');
+      this.scene.start('PinballScene', { level: 1 });
     });
   }
 }

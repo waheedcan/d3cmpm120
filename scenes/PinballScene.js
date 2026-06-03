@@ -3,9 +3,13 @@ export default class PinballScene extends Phaser.Scene {
     super('PinballScene');
   }
 
-  create() {
+  create(data) {
+    this.level = data.level ?? 1;
+    this.levelConfig = this.getLevelConfig(this.level);
+
     this.physics.world.setBounds(0, 0, 480, 640);
     this.physics.world.setBoundsCollision(true, true, true, false);
+    this.physics.world.gravity.y = this.levelConfig.gravityY;
 
     const leftWall = this.add.rectangle(16, 320, 32, 640, 0x355070);
     const rightWall = this.add.rectangle(464, 320, 32, 640, 0x355070);
@@ -33,6 +37,12 @@ export default class PinballScene extends Phaser.Scene {
     });
 
     this.bumperText = this.add.text(32, 52, 'Bumpers: 0/5', {
+      fontFamily: 'Arial',
+      fontSize: '20px',
+      color: '#ffffff',
+    });
+
+    this.levelText = this.add.text(32, 80, `Level: ${this.level}`, {
       fontFamily: 'Arial',
       fontSize: '20px',
       color: '#ffffff',
@@ -187,6 +197,7 @@ export default class PinballScene extends Phaser.Scene {
         result: 'win',
         score: this.hitBumpers.size,
         nextScene: 'TitleScene',
+        nextLevelData: { level: this.level + 1 },
       });
     }
   }
@@ -201,6 +212,7 @@ export default class PinballScene extends Phaser.Scene {
         result: 'lose',
         score: this.hitBumpers.size,
         nextScene: 'TitleScene',
+        nextLevelData: { level: this.level },
       });
       return;
     }
@@ -209,5 +221,21 @@ export default class PinballScene extends Phaser.Scene {
     this.ball.body.setVelocity(0, 0);
     this.hasLaunched = false;
     this.isResetting = false;
+  }
+
+  getLevelConfig(level) {
+    const configs = {
+      1: {
+        gravityY: 980,
+      },
+      2: {
+        gravityY: 200,
+      },
+      3: {
+        gravityY: -980,
+      },
+    };
+
+    return configs[level] ?? configs[1];
   }
 }
