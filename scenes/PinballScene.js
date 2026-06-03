@@ -14,14 +14,41 @@ export default class PinballScene extends Phaser.Scene {
     this.physics.add.existing(rightWall, true);
     this.physics.add.existing(bottomGutter, true);
 
-    const ball = this.add.circle(420, 80, 14, 0xf8f9fa);
+    const ball = this.add.circle(420, 560, 14, 0xf8f9fa);
     this.physics.add.existing(ball);
 
     ball.body.setCircle(14);
     ball.body.setBounce(0.85);
     ball.body.setCollideWorldBounds(true);
-    ball.body.setVelocity(-80, 0);
 
     this.physics.add.collider(ball, [leftWall, rightWall, bottomGutter]);
+
+    const maxChargeTime = 1500;
+    const minLaunchVelocity = 450;
+    const maxLaunchVelocity = 1100;
+    let chargeStartTime = null;
+    let hasLaunched = false;
+
+    this.input.keyboard.on('keydown-SPACE', () => {
+      if (hasLaunched || chargeStartTime !== null) {
+        return;
+      }
+
+      chargeStartTime = this.time.now;
+    });
+
+    this.input.keyboard.on('keyup-SPACE', () => {
+      if (hasLaunched || chargeStartTime === null) {
+        return;
+      }
+
+      const chargeTime = Math.min(this.time.now - chargeStartTime, maxChargeTime);
+      const chargePercent = chargeTime / maxChargeTime;
+      const launchVelocity = minLaunchVelocity + (maxLaunchVelocity - minLaunchVelocity) * chargePercent;
+
+      ball.body.setVelocityY(-launchVelocity);
+      hasLaunched = true;
+      chargeStartTime = null;
+    });
   }
 }
