@@ -3,9 +3,10 @@ export default class SummaryScene extends Phaser.Scene {
     super('SummaryScene');
   }
 
-  create(data) {
+  create(data = {}) {
     const message = data.result === 'win' ? 'You cleared the garden.' : 'Out of balls.';
     const score = data.score ?? 0;
+    const totalScore = data.totalScore ?? score;
     const nextScene = data.nextScene ?? 'TitleScene';
     const nextLevelData = data.nextLevelData ?? {};
 
@@ -17,6 +18,12 @@ export default class SummaryScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     this.add.text(240, 330, `Bumpers hit: ${score}/5`, {
+      fontFamily: 'Arial',
+      fontSize: '22px',
+      color: '#d8f3dc',
+    }).setOrigin(0.5);
+
+    this.add.text(240, 365, `Total score: ${totalScore}`, {
       fontFamily: 'Arial',
       fontSize: '22px',
       color: '#d8f3dc',

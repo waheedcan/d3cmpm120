@@ -3,8 +3,9 @@ export default class PinballScene extends Phaser.Scene {
     super('PinballScene');
   }
 
-  create(data) {
+  create(data = {}) {
     this.level = data.level ?? 1;
+    this.totalScore = data.totalScore ?? 0;
     this.levelConfig = this.getLevelConfig(this.level);
 
     this.physics.world.setBounds(0, 0, 480, 640);
@@ -48,6 +49,12 @@ export default class PinballScene extends Phaser.Scene {
       color: '#ffffff',
     });
 
+    this.scoreText = this.add.text(32, 108, `Total: ${this.totalScore}`, {
+      fontFamily: 'Arial',
+      fontSize: '20px',
+      color: '#ffffff',
+    });
+
     this.bumpers = [
       this.createBumper('B1', 150, 130),
       this.createBumper('B2', 300, 120),
@@ -83,6 +90,8 @@ export default class PinballScene extends Phaser.Scene {
     const maxLaunchVelocity = 1100;
     let chargeStartTime = null;
     this.hasLaunched = false;
+    this.nudgeLeftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
+    this.nudgeRightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
     this.input.keyboard.on('keydown-SPACE', () => {
       if (this.hasLaunched || chargeStartTime !== null) {
@@ -144,6 +153,10 @@ export default class PinballScene extends Phaser.Scene {
       this.loseBall();
     }
 
+    if (this.levelConfig.nudgeEnabled && this.hasLaunched) {
+      this.applyNudge();
+    }
+
     if (this.leftFlipper.rotation < -0.75) {
       this.leftFlipper.rotation = -0.75;
       this.leftFlipper.body.setAngularVelocity(0);
@@ -193,11 +206,18 @@ export default class PinballScene extends Phaser.Scene {
     this.bumperText.setText(`Bumpers: ${this.hitBumpers.size}/5`);
 
     if (this.hitBumpers.size === this.bumpers.length) {
+      const totalScore = this.totalScore + this.hitBumpers.size;
+
       this.scene.start('SummaryScene', {
         result: 'win',
         score: this.hitBumpers.size,
+        totalScore,
         nextScene: this.level < 3 ? 'PinballScene' : 'GameOverScene',
-        nextLevelData: { level: this.level + 1 },
+        nextLevelData: {
+          level: this.level + 1,
+          totalScore,
+          score: totalScore,
+        },
       });
     }
   }
@@ -211,6 +231,7 @@ export default class PinballScene extends Phaser.Scene {
       this.scene.start('SummaryScene', {
         result: 'lose',
         score: this.hitBumpers.size,
+        totalScore: this.totalScore + this.hitBumpers.size,
         nextScene: 'TitleScene',
         nextLevelData: { level: this.level },
       });
@@ -223,16 +244,39 @@ export default class PinballScene extends Phaser.Scene {
     this.isResetting = false;
   }
 
+  applyNudge() {
+    const velocityX = this.ball.body.velocity.x;
+    const nudgeStrength = this.levelConfig.nudgeStrength;
+    const maxNudgeVelocity = this.levelConfig.maxNudgeVelocity;
+
+    if (this.nudgeLeftKey.isDown) {
+      this.ball.body.setVelocityX(Math.max(velocityX - nudgeStrength, -maxNudgeVelocity));
+    }
+
+    if (this.nudgeRightKey.isDown) {
+      this.ball.body.setVelocityX(Math.min(velocityX + nudgeStrength, maxNudgeVelocity));
+    }
+  }
+
   getLevelConfig(level) {
     const configs = {
       1: {
         gravityY: 980,
+        nudgeEnabled: false,
+        nudgeStrength: 0,
+        maxNudgeVelocity: 0,
       },
       2: {
         gravityY: 200,
+        nudgeEnabled: true,
+        nudgeStrength: 16,
+        maxNudgeVelocity: 500,
       },
       3: {
         gravityY: -980,
+        nudgeEnabled: false,
+        nudgeStrength: 0,
+        maxNudgeVelocity: 0,
       },
     };
 
