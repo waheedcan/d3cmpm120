@@ -73,11 +73,27 @@ export default class PinballScene extends Phaser.Scene {
       this.leftFlipper.body.setAngularVelocity(900);
     });
 
+    this.input.keyboard.on('keydown-LEFT', () => {
+      this.leftFlipper.body.setAngularVelocity(-900);
+    });
+
+    this.input.keyboard.on('keyup-LEFT', () => {
+      this.leftFlipper.body.setAngularVelocity(900);
+    });
+
     this.input.keyboard.on('keydown-D', () => {
       this.rightFlipper.body.setAngularVelocity(900);
     });
 
     this.input.keyboard.on('keyup-D', () => {
+      this.rightFlipper.body.setAngularVelocity(-900);
+    });
+
+    this.input.keyboard.on('keydown-RIGHT', () => {
+      this.rightFlipper.body.setAngularVelocity(900);
+    });
+
+    this.input.keyboard.on('keyup-RIGHT', () => {
       this.rightFlipper.body.setAngularVelocity(-900);
     });
   }
