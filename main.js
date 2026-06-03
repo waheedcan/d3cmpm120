@@ -1,5 +1,6 @@
 import TitleScene from './scenes/TitleScene.js';
 import PinballScene from './scenes/PinballScene.js';
+import SummaryScene from './scenes/SummaryScene.js';
 
 const config = {
   type: Phaser.AUTO,
@@ -11,7 +12,7 @@ const config = {
       gravity: { y: 980 },
     },
   },
-  scene: [TitleScene, PinballScene],
+  scene: [TitleScene, PinballScene, SummaryScene],
 };
 
 new Phaser.Game(config);

@@ -5,6 +5,7 @@ export default class PinballScene extends Phaser.Scene {
 
   create() {
     this.physics.world.setBounds(0, 0, 480, 640);
+    this.physics.world.setBoundsCollision(true, true, true, false);
 
     const leftWall = this.add.rectangle(16, 320, 32, 640, 0x355070);
     const rightWall = this.add.rectangle(464, 320, 32, 640, 0x355070);
@@ -23,6 +24,7 @@ export default class PinballScene extends Phaser.Scene {
 
     this.ballsRemaining = 3;
     this.hitBumpers = new Set();
+    this.isResetting = false;
 
     this.livesText = this.add.text(32, 24, 'Balls: 3', {
       fontFamily: 'Arial',
@@ -128,7 +130,7 @@ export default class PinballScene extends Phaser.Scene {
   }
 
   update() {
-    if (this.ball.y > 620) {
+    if (!this.isResetting && this.ball.y > 620) {
       this.loseBall();
     }
 
@@ -181,21 +183,31 @@ export default class PinballScene extends Phaser.Scene {
     this.bumperText.setText(`Bumpers: ${this.hitBumpers.size}/5`);
 
     if (this.hitBumpers.size === this.bumpers.length) {
-      this.scene.start('SummaryScene', { result: 'win' });
+      this.scene.start('SummaryScene', {
+        result: 'win',
+        score: this.hitBumpers.size,
+        nextScene: 'TitleScene',
+      });
     }
   }
 
   loseBall() {
+    this.isResetting = true;
     this.ballsRemaining -= 1;
     this.livesText.setText(`Balls: ${this.ballsRemaining}`);
 
     if (this.ballsRemaining <= 0) {
-      this.scene.start('SummaryScene', { result: 'lose' });
+      this.scene.start('SummaryScene', {
+        result: 'lose',
+        score: this.hitBumpers.size,
+        nextScene: 'TitleScene',
+      });
       return;
     }
 
     this.ball.body.reset(420, 560);
     this.ball.body.setVelocity(0, 0);
     this.hasLaunched = false;
+    this.isResetting = false;
   }
 }
