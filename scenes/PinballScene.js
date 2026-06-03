@@ -62,13 +62,9 @@ export default class PinballScene extends Phaser.Scene {
         this.createMovingTarget('T3', 170, 280, 80),
         this.createMovingTarget('T4', 330, 310, 65),
       ]
-      : [
-        this.createBumper('B1', 150, 130),
-        this.createBumper('B2', 300, 120),
-        this.createBumper('B3', 235, 215),
-        this.createBumper('B4', 120, 300),
-        this.createBumper('B5', 340, 300),
-      ];
+      : this.levelConfig.bumperPositions.map((position, index) => (
+        this.createBumper(`B${index + 1}`, position.x, position.y)
+      ));
 
     this.bumpers.forEach((target) => {
       this.physics.add.overlap(this.ball, target, () => {
@@ -301,6 +297,13 @@ export default class PinballScene extends Phaser.Scene {
         boundsCollision: [true, true, true, false],
         targetCount: 5,
         movingTargets: false,
+        bumperPositions: [
+          { x: 150, y: 130 },
+          { x: 300, y: 120 },
+          { x: 235, y: 215 },
+          { x: 120, y: 300 },
+          { x: 340, y: 300 },
+        ],
         flipperY: 520,
         ballLostY: 620,
         ballLostDirection: 'down',
@@ -321,6 +324,7 @@ export default class PinballScene extends Phaser.Scene {
         boundsCollision: [true, true, true, false],
         targetCount: 4,
         movingTargets: true,
+        bumperPositions: [],
         flipperY: 520,
         ballLostY: 620,
         ballLostDirection: 'down',
@@ -341,6 +345,13 @@ export default class PinballScene extends Phaser.Scene {
         boundsCollision: [true, true, false, true],
         targetCount: 5,
         movingTargets: false,
+        bumperPositions: [
+          { x: 135, y: 430 },
+          { x: 300, y: 425 },
+          { x: 220, y: 500 },
+          { x: 115, y: 570 },
+          { x: 350, y: 565 },
+        ],
         flipperY: 120,
         ballLostY: 20,
         ballLostDirection: 'up',
