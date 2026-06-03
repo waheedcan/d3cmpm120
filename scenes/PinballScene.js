@@ -9,7 +9,7 @@ export default class PinballScene extends Phaser.Scene {
     this.levelConfig = this.getLevelConfig(this.level);
 
     this.physics.world.setBounds(0, 0, 480, 640);
-    this.physics.world.setBoundsCollision(true, true, true, false);
+    this.physics.world.setBoundsCollision(...this.levelConfig.boundsCollision);
     this.physics.world.gravity.y = this.levelConfig.gravityY;
 
     const leftWall = this.add.rectangle(16, 320, 32, 640, 0x355070);
@@ -37,7 +37,7 @@ export default class PinballScene extends Phaser.Scene {
       color: '#ffffff',
     });
 
-    this.bumperText = this.add.text(32, 52, 'Bumpers: 0/5', {
+    this.bumperText = this.add.text(32, 52, `Targets: 0/${this.levelConfig.targetCount}`, {
       fontFamily: 'Arial',
       fontSize: '20px',
       color: '#ffffff',
@@ -55,22 +55,29 @@ export default class PinballScene extends Phaser.Scene {
       color: '#ffffff',
     });
 
-    this.bumpers = [
-      this.createBumper('B1', 150, 130),
-      this.createBumper('B2', 300, 120),
-      this.createBumper('B3', 235, 215),
-      this.createBumper('B4', 120, 300),
-      this.createBumper('B5', 340, 300),
-    ];
+    this.bumpers = this.levelConfig.movingTargets
+      ? [
+        this.createMovingTarget('T1', 130, 150, 70),
+        this.createMovingTarget('T2', 300, 170, 90),
+        this.createMovingTarget('T3', 170, 280, 80),
+        this.createMovingTarget('T4', 330, 310, 65),
+      ]
+      : [
+        this.createBumper('B1', 150, 130),
+        this.createBumper('B2', 300, 120),
+        this.createBumper('B3', 235, 215),
+        this.createBumper('B4', 120, 300),
+        this.createBumper('B5', 340, 300),
+      ];
 
-    this.bumpers.forEach((bumper) => {
-      this.physics.add.overlap(this.ball, bumper, () => {
-        this.hitBumper(bumper);
+    this.bumpers.forEach((target) => {
+      this.physics.add.overlap(this.ball, target, () => {
+        this.hitBumper(target);
       });
     });
 
-    this.leftFlipper = this.add.rectangle(160, 520, 96, 16, 0xeaac8b);
-    this.rightFlipper = this.add.rectangle(320, 520, 96, 16, 0xeaac8b);
+    this.leftFlipper = this.add.rectangle(160, this.levelConfig.flipperY, 96, 16, 0xeaac8b);
+    this.rightFlipper = this.add.rectangle(320, this.levelConfig.flipperY, 96, 16, 0xeaac8b);
 
     this.leftFlipper.setOrigin(0, 0.5);
     this.rightFlipper.setOrigin(1, 0.5);
@@ -116,40 +123,40 @@ export default class PinballScene extends Phaser.Scene {
     });
 
     this.input.keyboard.on('keydown-A', () => {
-      this.leftFlipper.body.setAngularVelocity(-900);
+      this.leftFlipper.body.setAngularVelocity(this.levelConfig.leftFlipperActiveVelocity);
     });
 
     this.input.keyboard.on('keyup-A', () => {
-      this.leftFlipper.body.setAngularVelocity(900);
+      this.leftFlipper.body.setAngularVelocity(this.levelConfig.leftFlipperRestVelocity);
     });
 
     this.input.keyboard.on('keydown-LEFT', () => {
-      this.leftFlipper.body.setAngularVelocity(-900);
+      this.leftFlipper.body.setAngularVelocity(this.levelConfig.leftFlipperActiveVelocity);
     });
 
     this.input.keyboard.on('keyup-LEFT', () => {
-      this.leftFlipper.body.setAngularVelocity(900);
+      this.leftFlipper.body.setAngularVelocity(this.levelConfig.leftFlipperRestVelocity);
     });
 
     this.input.keyboard.on('keydown-D', () => {
-      this.rightFlipper.body.setAngularVelocity(900);
+      this.rightFlipper.body.setAngularVelocity(this.levelConfig.rightFlipperActiveVelocity);
     });
 
     this.input.keyboard.on('keyup-D', () => {
-      this.rightFlipper.body.setAngularVelocity(-900);
+      this.rightFlipper.body.setAngularVelocity(this.levelConfig.rightFlipperRestVelocity);
     });
 
     this.input.keyboard.on('keydown-RIGHT', () => {
-      this.rightFlipper.body.setAngularVelocity(900);
+      this.rightFlipper.body.setAngularVelocity(this.levelConfig.rightFlipperActiveVelocity);
     });
 
     this.input.keyboard.on('keyup-RIGHT', () => {
-      this.rightFlipper.body.setAngularVelocity(-900);
+      this.rightFlipper.body.setAngularVelocity(this.levelConfig.rightFlipperRestVelocity);
     });
   }
 
   update() {
-    if (!this.isResetting && this.ball.y > 620) {
+    if (!this.isResetting && this.isBallLost()) {
       this.loseBall();
     }
 
@@ -157,23 +164,23 @@ export default class PinballScene extends Phaser.Scene {
       this.applyNudge();
     }
 
-    if (this.leftFlipper.rotation < -0.75) {
-      this.leftFlipper.rotation = -0.75;
+    if (this.leftFlipper.rotation < this.levelConfig.leftFlipperMinRotation) {
+      this.leftFlipper.rotation = this.levelConfig.leftFlipperMinRotation;
       this.leftFlipper.body.setAngularVelocity(0);
     }
 
-    if (this.leftFlipper.rotation > 0) {
-      this.leftFlipper.rotation = 0;
+    if (this.leftFlipper.rotation > this.levelConfig.leftFlipperMaxRotation) {
+      this.leftFlipper.rotation = this.levelConfig.leftFlipperMaxRotation;
       this.leftFlipper.body.setAngularVelocity(0);
     }
 
-    if (this.rightFlipper.rotation > 0.75) {
-      this.rightFlipper.rotation = 0.75;
+    if (this.rightFlipper.rotation > this.levelConfig.rightFlipperMaxRotation) {
+      this.rightFlipper.rotation = this.levelConfig.rightFlipperMaxRotation;
       this.rightFlipper.body.setAngularVelocity(0);
     }
 
-    if (this.rightFlipper.rotation < 0) {
-      this.rightFlipper.rotation = 0;
+    if (this.rightFlipper.rotation < this.levelConfig.rightFlipperMinRotation) {
+      this.rightFlipper.rotation = this.levelConfig.rightFlipperMinRotation;
       this.rightFlipper.body.setAngularVelocity(0);
     }
   }
@@ -186,6 +193,27 @@ export default class PinballScene extends Phaser.Scene {
     bumper.body.setCircle(24);
 
     return bumper;
+  }
+
+  createMovingTarget(id, x, y, travelDistance) {
+    const target = this.add.rectangle(x, y, 58, 28, 0xf6bd60);
+    target.id = id;
+
+    this.physics.add.existing(target, true);
+
+    this.tweens.add({
+      targets: target,
+      x: x + travelDistance,
+      duration: 1400,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+      onUpdate: () => {
+        target.body.updateFromGameObject();
+      },
+    });
+
+    return target;
   }
 
   hitBumper(bumper) {
@@ -203,7 +231,7 @@ export default class PinballScene extends Phaser.Scene {
 
     this.hitBumpers.add(bumper.id);
     bumper.setFillStyle(0x84a59d);
-    this.bumperText.setText(`Bumpers: ${this.hitBumpers.size}/5`);
+    this.bumperText.setText(`Targets: ${this.hitBumpers.size}/${this.bumpers.length}`);
 
     if (this.hitBumpers.size === this.bumpers.length) {
       const totalScore = this.totalScore + this.hitBumpers.size;
@@ -244,6 +272,14 @@ export default class PinballScene extends Phaser.Scene {
     this.isResetting = false;
   }
 
+  isBallLost() {
+    if (this.levelConfig.ballLostDirection === 'up') {
+      return this.ball.y < this.levelConfig.ballLostY;
+    }
+
+    return this.ball.y > this.levelConfig.ballLostY;
+  }
+
   applyNudge() {
     const velocityX = this.ball.body.velocity.x;
     const nudgeStrength = this.levelConfig.nudgeStrength;
@@ -262,18 +298,60 @@ export default class PinballScene extends Phaser.Scene {
     const configs = {
       1: {
         gravityY: 980,
+        boundsCollision: [true, true, true, false],
+        targetCount: 5,
+        movingTargets: false,
+        flipperY: 520,
+        ballLostY: 620,
+        ballLostDirection: 'down',
+        leftFlipperActiveVelocity: -900,
+        leftFlipperRestVelocity: 900,
+        leftFlipperMinRotation: -0.75,
+        leftFlipperMaxRotation: 0,
+        rightFlipperActiveVelocity: 900,
+        rightFlipperRestVelocity: -900,
+        rightFlipperMinRotation: 0,
+        rightFlipperMaxRotation: 0.75,
         nudgeEnabled: false,
         nudgeStrength: 0,
         maxNudgeVelocity: 0,
       },
       2: {
         gravityY: 200,
+        boundsCollision: [true, true, true, false],
+        targetCount: 4,
+        movingTargets: true,
+        flipperY: 520,
+        ballLostY: 620,
+        ballLostDirection: 'down',
+        leftFlipperActiveVelocity: -900,
+        leftFlipperRestVelocity: 900,
+        leftFlipperMinRotation: -0.75,
+        leftFlipperMaxRotation: 0,
+        rightFlipperActiveVelocity: 900,
+        rightFlipperRestVelocity: -900,
+        rightFlipperMinRotation: 0,
+        rightFlipperMaxRotation: 0.75,
         nudgeEnabled: true,
         nudgeStrength: 16,
         maxNudgeVelocity: 500,
       },
       3: {
         gravityY: -980,
+        boundsCollision: [true, true, false, true],
+        targetCount: 5,
+        movingTargets: false,
+        flipperY: 120,
+        ballLostY: 20,
+        ballLostDirection: 'up',
+        leftFlipperActiveVelocity: 900,
+        leftFlipperRestVelocity: -900,
+        leftFlipperMinRotation: 0,
+        leftFlipperMaxRotation: 0.75,
+        rightFlipperActiveVelocity: -900,
+        rightFlipperRestVelocity: 900,
+        rightFlipperMinRotation: -0.75,
+        rightFlipperMaxRotation: 0,
         nudgeEnabled: false,
         nudgeStrength: 0,
         maxNudgeVelocity: 0,
